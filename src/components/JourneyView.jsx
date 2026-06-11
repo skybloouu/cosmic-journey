@@ -94,6 +94,7 @@ export default function JourneyView({ data, onReset }) {
   const [journey, setJourney] = useState(null);
   const [selectedWikiQuery, setSelectedWikiQuery] = useState(null);
   const [quote, setQuote] = useState(null);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const prevMilestoneRef = useRef(null);
 
   useEffect(() => {
@@ -114,14 +115,18 @@ export default function JourneyView({ data, onReset }) {
       prevMilestoneRef.current = newJourney.currentMilestone.name;
     }, 1000);
 
-    // Start the deep space ambient drone
-    startCosmicDrone();
-
-    return () => {
-      clearInterval(interval);
-      stopCosmicDrone(); // Fade out ambient drone when leaving this view
-    };
+    return () => clearInterval(interval);
   }, [dateStr]);
+
+  useEffect(() => {
+    if (audioEnabled) {
+      startCosmicDrone();
+    } else {
+      stopCosmicDrone();
+    }
+
+    return () => stopCosmicDrone();
+  }, [audioEnabled]);
 
   if (!journey) return null;
 
@@ -176,12 +181,24 @@ export default function JourneyView({ data, onReset }) {
         className="glass-panel" 
         style={{ maxWidth: '800px', width: '100%', padding: '30px', marginBottom: '24px' }}
       >
-        <button 
-          onClick={onReset}
-          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'monospace', marginBottom: '20px' }}
-        >
-          &lt;- Return
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '12px' }}>
+          <button 
+            onClick={onReset}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'monospace' }}
+          >
+            &lt;- Return
+          </button>
+          <button
+            type="button"
+            className="glass-button"
+            onClick={() => setAudioEnabled(prev => !prev)}
+            aria-pressed={audioEnabled}
+            aria-label={audioEnabled ? 'Mute ambient sound' : 'Enable ambient sound'}
+            style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+          >
+            {audioEnabled ? '♪ Sound on' : '♪ Sound off'}
+          </button>
+        </div>
         <h2 style={{ fontSize: '2.5rem', marginBottom: '5px' }} className="text-gradient">
           {name}'s Light
         </h2>
